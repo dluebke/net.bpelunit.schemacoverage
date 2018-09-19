@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/SchemaWithTypeInheritance" xmlns:tns="http://www.example.org/SchemaWithTypeInheritance" elementFormDefault="qualified">
+
+    <element name="A">
+    	<complexType>
+    		<sequence>
+    			<element name="B" minOccurs="1" maxOccurs="1" type="tns:tC" />
+    		</sequence>
+    	</complexType>
+    </element>
+    
+    <complexType name="tC">
+    	<sequence>
+    		<element name="C" type="string" />
+    	</sequence>
+    </complexType>
+    
+    <complexType name="tD">
+    	<complexContent>
+    		<extension base="tns:tC">
+		    	<sequence>
+		    		<element name="D" type="string" />
+		    	</sequence>
+    		</extension>
+    	</complexContent>
+    </complexType>
+</schema>

@@ -1,0 +1,4 @@
+<Element xmlns="http://www.example.org/schema1">
+	<A>A</A>
+	<B>true</B>
+</Element>

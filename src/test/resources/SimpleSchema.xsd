@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/SimpleSchema" xmlns:tns="http://www.example.org/SimpleSchema" elementFormDefault="qualified">
+
+    <element name="A" type="string"></element>
+
+    <complexType name="tComplexType"></complexType>
+
+    <simpleType name="tSimpleType">
+    	<restriction base="string"></restriction>
+    </simpleType>
+</schema>

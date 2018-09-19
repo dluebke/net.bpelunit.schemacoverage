@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/schema1"
+	xmlns:tns="http://www.example.org/schema1" elementFormDefault="qualified">
+	
+	<element name="Element">
+		<complexType>
+			<sequence>
+				<element name="A" type="string"/>
+				<element name="B" type="boolean" minOccurs="0"/>
+				<element name="C" type="integer" minOccurs="0" maxOccurs="unbounded"/>
+			</sequence>
+		</complexType>
+	</element>
+</schema>

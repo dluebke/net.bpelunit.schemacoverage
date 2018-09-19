@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/MeasurementBuilderTest" xmlns:tns="http://www.example.org/MeasurementBuilderTest" elementFormDefault="qualified">
+
+    <element name="StringElement" type="string"></element>
+    <element name="BooleanElement" type="boolean"></element>
+    <element name="EnumElement">
+	    <simpleType>
+		    <restriction base="string">
+		    	<enumeration value="A"/>
+		    	<enumeration value="B"/>
+		    </restriction>
+	    </simpleType>
+    </element>
+    
+    <element name="SubstitutionElement">
+    	<complexType>
+    		<sequence>
+    			<element ref="tns:Parent"></element>
+    		</sequence>
+    	</complexType>
+    </element>
+    <element name="Parent" type="boolean"></element>
+    <element name="Substitute" type="boolean" substitutionGroup="tns:Parent"></element>
+    
+    
+    <element name="InheritanceElement" type="tns:tTopLevel" />
+    <complexType name="tTopLevel">
+    	<sequence>
+    		<element name="X" type="string"></element>
+    	</sequence>
+    </complexType>
+    <complexType name="tLevel2">
+    	<complexContent>
+    		<extension base="tns:tTopLevel">
+    			<sequence>
+		    		<element name="Y" type="string" />
+		    	</sequence>
+    		</extension>
+    	</complexContent>
+    </complexType>
+</schema>

@@ -1,0 +1,6 @@
+<Message xmlns="http://www.example.org/schema2">
+	<Substitute>
+		<X>X</X>
+		<Y>Y</Y>
+	</Substitute>
+</Message>

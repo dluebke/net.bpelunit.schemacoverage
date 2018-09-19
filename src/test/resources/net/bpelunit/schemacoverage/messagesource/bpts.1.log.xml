@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tes:testResult name="Test Suite suite-abc.bpts" result="PASSED" message="Passed" xmlns:tes="http://www.bpelunit.org/schema/testResult">
+    <tes:state name="Status Code">PASSED</tes:state>
+    <tes:state name="Status Message">Passed</tes:state>
+    <tes:testCase name="Test Case TC1" result="PASSED" message="Passed">
+        <tes:state name="Status Code">PASSED</tes:state>
+        <tes:state name="Status Message">Passed</tes:state>
+        <tes:partnerTrack name="Partner Track client" result="PASSED" message="Passed">
+            <tes:state name="Status Code">PASSED</tes:state>
+            <tes:state name="Status Message">Passed</tes:state>
+        </tes:partnerTrack>
+        <tes:partnerTrack name="Partner Track A" result="PASSED" message="Passed">
+            <tes:state name="Status Code">PASSED</tes:state>
+            <tes:state name="Status Message">Passed</tes:state>
+            <tes:activity type="ReceiveSendSync" name="Receive/Send Synchronous" result="PASSED" message="Passed">
+                <tes:state name="Status Code">PASSED</tes:state>
+                <tes:state name="Status Message">Passed</tes:state>
+                <tes:dataPackage name="Receive Data Package" result="PASSED" message="Passed">
+                    <tes:state name="Status Code">PASSED</tes:state>
+                    <tes:state name="Status Message">Passed</tes:state>
+                    <tes:state name="Style/Encoding">document/literal</tes:state>
+                    <tes:state name="Direction">INPUT</tes:state>
+                    <tes:xmlData name="Plain incoming message">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Body>
+                                <a />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                    <tes:xmlData name="SOAP Message data">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Body>
+                                <a />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                    <tes:xmlData name="Literal XML data">
+                        <literalData>
+                            <a />
+                        </literalData>
+                    </tes:xmlData>
+                </tes:dataPackage>
+                <tes:dataPackage name="Send Data Package" result="PASSED" message="Passed">
+                    <tes:state name="Status Code">PASSED</tes:state>
+                    <tes:state name="Status Message">Passed</tes:state>
+                    <tes:state name="Style/Encoding">document/literal</tes:state>
+                    <tes:state name="Direction">OUTPUT</tes:state>
+                    <tes:xmlData name="Literal XML data">
+                        <literalData>
+                            <b />
+                        </literalData>
+                    </tes:xmlData>
+                    <tes:xmlData name="SOAP Message data">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Header/>
+                            <SOAP-ENV:Body>
+                                <b />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                    <tes:xmlData name="Plain outgoing message">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Header/>
+                            <SOAP-ENV:Body>
+                                <b />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                </tes:dataPackage>
+            </tes:activity>
+            <tes:activity type="SendReceiveSync" name="Send/Receive Synchronous" result="PASSED" message="Passed">
+                <tes:state name="Status Code">PASSED</tes:state>
+                <tes:state name="Status Message">Passed</tes:state>
+                <tes:dataPackage name="Send Data Package" result="PASSED" message="Passed">
+                    <tes:state name="Status Code">PASSED</tes:state>
+                    <tes:state name="Status Message">Passed</tes:state>
+                    <tes:state name="Target URL">http://localhost:8080/active-bpel/services/F10_Executor</tes:state>
+                    <tes:state name="HTTP Action"/>
+                    <tes:state name="Style/Encoding">document/literal</tes:state>
+                    <tes:state name="Direction">INPUT</tes:state>
+                    <tes:xmlData name="Literal XML data">
+                        <literalData>
+                           <c />
+                        </literalData>
+                    </tes:xmlData>
+                    <tes:xmlData name="SOAP Message data">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Header/>
+                            <SOAP-ENV:Body>
+                                <c />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                    <tes:xmlData name="Plain outgoing message">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Header/>
+                            <SOAP-ENV:Body>
+                                <c />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                </tes:dataPackage>
+                <tes:dataPackage name="Receive Data Package" result="PASSED" message="Passed">
+                    <tes:state name="Status Code">PASSED</tes:state>
+                    <tes:state name="Status Message">Passed</tes:state>
+                    <tes:state name="Style/Encoding">document/literal</tes:state>
+                    <tes:state name="Direction">OUTPUT</tes:state>
+                    <tes:xmlData name="Plain incoming message">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Body>
+                                <d />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                    <tes:xmlData name="SOAP Message data">
+                        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                            <SOAP-ENV:Body>
+                                <d />
+                            </SOAP-ENV:Body>
+                        </SOAP-ENV:Envelope>
+                    </tes:xmlData>
+                    <tes:xmlData name="Literal XML data">
+                        <literalData>
+                            <d />
+                        </literalData>
+                    </tes:xmlData>
+                </tes:dataPackage>
+            </tes:activity>
+        </tes:partnerTrack>
+    </tes:testCase>
+</tes:testResult>

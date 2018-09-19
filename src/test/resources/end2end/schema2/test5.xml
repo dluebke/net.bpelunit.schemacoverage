@@ -1,0 +1,6 @@
+<Message xmlns="http://www.example.org/schema2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Parent xsi:type="tLevel2">
+		<X>A</X>
+		<Y>B</Y>
+	</Parent>
+</Message>

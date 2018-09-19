@@ -1,0 +1,5 @@
+<Message xmlns="http://www.example.org/schema2">
+	<Parent>
+		<X>A</X>
+	</Parent>
+</Message>
