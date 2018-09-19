@@ -54,14 +54,16 @@ public class XMLSchemaHelper {
 			}
 			
 			for(Element typeElement : allTypeElements) {
-				NodeList children = typeElement.getChildNodes();
-				for(int i = 0; i < children.getLength(); i++) {
-					Node n = children.item(i);
-					if(n.getNodeType() == Node.ELEMENT_NODE) {
-						if("element".equals(n.getLocalName())) {
-							result.add((Element)n);
-						} else {
-							result.addAll(collectElements((Element)n, xmlSchemaContents));
+				if(typeElement != null) {
+					NodeList children = typeElement.getChildNodes();
+					for(int i = 0; i < children.getLength(); i++) {
+						Node n = children.item(i);
+						if(n.getNodeType() == Node.ELEMENT_NODE) {
+							if("element".equals(n.getLocalName())) {
+								result.add((Element)n);
+							} else {
+								result.addAll(collectElements((Element)n, xmlSchemaContents));
+							}
 						}
 					}
 				}

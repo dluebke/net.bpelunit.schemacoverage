@@ -81,4 +81,16 @@ private static Element sampleXml;
 		result = s2.evaluate(sampleXml);
 		assertEquals(0, result.size());
 	}
+	
+	@Test
+	public void testLength() throws Exception {
+		ElementSelector s1 = new ElementSelector("a");
+		assertEquals(1, s1.length());
+		
+		s1.appendSelector(new ElementSelector("a"));
+		assertEquals(2, s1.length());
+		
+		s1.appendSelector(new ElementSelector("a"));
+		assertEquals(3, s1.length());
+	}
 }

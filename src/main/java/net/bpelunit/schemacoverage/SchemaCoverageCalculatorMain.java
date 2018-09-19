@@ -103,9 +103,9 @@ public class SchemaCoverageCalculatorMain {
 		
 		IMessageSource messageSource = null;
 		if(cmd.hasOption(COMMANDLINEOPTION_MESSAGESOURCE_BPELUNITXMLLOG)) {
-			messageSource = BptsLogFileMessageSource.readBptsLogFiles(cmd.getOptionValues(COMMANDLINEOPTION_MESSAGESOURCE_BPELUNITXMLLOG));
+			messageSource = BptsLogFileMessageSource.readBptsLogFiles(cmd.getOptionValue(COMMANDLINEOPTION_MESSAGESOURCE_BPELUNITXMLLOG).split(","));
 		} else if(cmd.hasOption(COMMANDLINEOPTION_MESSAGESOURCE_XMLFILES)) {
-			messageSource = XmlFileMessageSource.readXmlFiles(cmd.getOptionValues(COMMANDLINEOPTION_MESSAGESOURCE_XMLFILES));
+			messageSource = XmlFileMessageSource.readXmlFiles(cmd.getOptionValue(COMMANDLINEOPTION_MESSAGESOURCE_XMLFILES).split(","));
 		} else {
 			System.err.println(String.format("You must specify a message source with -%s or -%s!", COMMANDLINEOPTION_MESSAGESOURCE_BPELUNITXMLLOG, COMMANDLINEOPTION_MESSAGESOURCE_XMLFILES));
 			printHelpAndExit(options);
@@ -172,6 +172,7 @@ public class SchemaCoverageCalculatorMain {
 		
 		
 		System.out.println("Found " + measurementPoints.size() + " measurement points");
+		System.out.println("Skipped at " + mb.getRulesTruncatedAt().size() + " schema locations");
 		CounterMap<MeasurementPointType> counters = new CounterMap<>();
 		for(MeasurementPoint p : measurementPoints) {
 			counters.inc(p.getMeasurementPointType());

@@ -21,4 +21,5 @@ public interface INodeSelector extends Cloneable {
 	int length();
 	INodeSelector getLastSelector();
 	void setFilter(INodeFilter filter);
+	boolean isInSelectorChain(INodeSelector selector);
 }

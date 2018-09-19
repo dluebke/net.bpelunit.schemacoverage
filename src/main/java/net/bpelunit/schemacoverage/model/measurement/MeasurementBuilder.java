@@ -11,6 +11,7 @@ import static net.bpelunit.schemacoverage.model.xsd.XMLSchemaHelper.resolveQName
 import static net.bpelunit.schemacoverage.model.xsd.XMLSchemaHelper.resolveQNameForElement;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ import net.bpelunit.schemacoverage.simplepath.function.TextValueFunction;
 import net.bpelunit.schemacoverage.simplepath.function.TypeFunction;
 import net.bpelunit.schemacoverage.simplepath.selector.AttributeSelector;
 import net.bpelunit.schemacoverage.simplepath.selector.ElementSelector;
-import net.bpelunit.schemacoverage.simplepath.selector.INodeSelector;
+import net.bpelunit.schemacoverage.simplepath.selector.PathTooLongException;
 import net.bpelunit.schemacoverage.simplepath.selector.RootSelector;
 import net.bpelunit.schemacoverage.util.StringUtil;
 import net.bpelunit.schemacoverage.xml.QNameUtil;
@@ -35,12 +36,18 @@ import net.bpelunit.schemacoverage.xml.XMLUtil;
 
 public class MeasurementBuilder {
 
-	private static final int MAX_DEPTH = 12;
+	private static final int MAX_DEPTH = 7;
 	private static final boolean USE_BASE_ELEMENT_IN_SUBSTITUTION_HIERARCHY = true;
 	private boolean resolveTypeHierarchyForSubstitutionGroups = true;
 
+	private Set<String> rulesTruncatedAt = new HashSet<>();
+	
 	public MeasurementBuilder() {
 		this(true);
+	}
+	
+	public Set<String> getRulesTruncatedAt() {
+		return rulesTruncatedAt;
 	}
 	
 	public MeasurementBuilder(boolean resolveTypeHierarchyForSubstitutionGroups ) {
@@ -58,7 +65,7 @@ public class MeasurementBuilder {
 	}
 		
 	private void buildMeasurementPointsForElement(Context<Element> context, Element element, IProject project,
-			INodeSelector parentElementPath) {
+			RootSelector parentElementPath) {
 		
 		if("element".equals(element.getLocalName())) {
 			element = resolveElementRefIfNecessary(element, project);
@@ -80,55 +87,64 @@ public class MeasurementBuilder {
 				}
 				
 				for(QName elementToProcess : elementsToProcess) {
-					INodeSelector thisElementPath = parentElementPath.clone();
-					thisElementPath.appendSelector(new ElementSelector(elementToProcess));
-					INodeFunction countFunctionElementPath = new CountFunction(thisElementPath.clone());
-					if(minOccurs == 0 && maxOccurs == 1) {
-						context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeNotSet, countFunctionElementPath, "0"));
-						context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeSet, countFunctionElementPath, "1"));
-					} else if(minOccurs == maxOccurs) {
-						context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.MandatoryNodeUsed, countFunctionElementPath, Integer.toString(minOccurs)));
-					} else {
-						context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListLowerBound, countFunctionElementPath, Integer.toString(minOccurs)));
-						if(maxOccurs > 0) {
-							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListUpperBound, countFunctionElementPath, Integer.toString(maxOccurs)));
+					try {
+						RootSelector thisElementPath = parentElementPath.clone();
+						thisElementPath.appendSelector(new ElementSelector(elementToProcess), MAX_DEPTH);
+						INodeFunction countFunctionElementPath = new CountFunction(thisElementPath.clone());
+						if(minOccurs == 0 && maxOccurs == 1) {
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeNotSet, countFunctionElementPath, "0"));
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeSet, countFunctionElementPath, "1"));
+						} else if(minOccurs == maxOccurs) {
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.MandatoryNodeUsed, countFunctionElementPath, Integer.toString(minOccurs)));
 						} else {
-							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.DifferentlySizedLists, countFunctionElementPath, null));
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListLowerBound, countFunctionElementPath, Integer.toString(minOccurs)));
+							if(maxOccurs > 0) {
+								context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListUpperBound, countFunctionElementPath, Integer.toString(maxOccurs)));
+							} else {
+								context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.DifferentlySizedLists, countFunctionElementPath, null));
+							}
 						}
+						Element currentElement = project.getSchemaElementByQName(QNameUtil.format(elementToProcess));
+						if(currentElement == null) {
+							currentElement = element;
+						}
+						String typeAsCName = currentElement.getAttribute("type");
+						buildCoveragePointsForType(context, thisElementPath, typeAsCName, currentElement, project, resolveTypeHierarchyForSubstitutionGroups  || !hasSubstitutions);
+					} catch(PathTooLongException e) {
+						rulesTruncatedAt.add(e.getParentSelector().toString());
+						// ignore and proceed. Rules will be truncated here, which is what we want
 					}
-					
-					Element currentElement = project.getSchemaElementByQName(QNameUtil.format(elementToProcess));
-					if(currentElement == null) {
-						currentElement = element;
-					}
-					String typeAsCName = currentElement.getAttribute("type");
-					buildCoveragePointsForType(context, thisElementPath, typeAsCName, currentElement, project, resolveTypeHierarchyForSubstitutionGroups  || !hasSubstitutions);
 				}
 			}
 		}
 	}
 
-	private void buildCoveragePointsForAttribute(Context<Element> context, Element attributeElement, IProject project, INodeSelector parentElementPath) {
-		if("attribute".equals(attributeElement.getLocalName())) {
-			INodeSelector thisElementPath = parentElementPath.clone();
-			boolean required = "required".equals(attributeElement.getAttribute("use"));
-			
-			QName elementQName = resolveQNameForAttribute(attributeElement);
-			thisElementPath.appendSelector(new AttributeSelector(elementQName));
-			INodeFunction countFunctionElementPath = new CountFunction(thisElementPath);
-			if(required) {
-				context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.MandatoryNodeUsed, countFunctionElementPath, "1"));
-			} else {
-				context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeNotSet, countFunctionElementPath, "0"));
-				context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeSet, countFunctionElementPath, "1"));
+	private void buildCoveragePointsForAttribute(Context<Element> context, Element attributeElement, IProject project, RootSelector parentElementPath) {
+		try {
+			if("attribute".equals(attributeElement.getLocalName())) {
+				RootSelector thisElementPath = parentElementPath.clone();
+				boolean required = "required".equals(attributeElement.getAttribute("use"));
+				
+				QName elementQName = resolveQNameForAttribute(attributeElement);
+				thisElementPath.appendSelector(new AttributeSelector(elementQName), MAX_DEPTH);
+				INodeFunction countFunctionElementPath = new CountFunction(thisElementPath);
+				if(required) {
+					context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.MandatoryNodeUsed, countFunctionElementPath, "1"));
+				} else {
+					context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeNotSet, countFunctionElementPath, "0"));
+					context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeSet, countFunctionElementPath, "1"));
+				}
+				
+				String typeAsCName = attributeElement.getAttribute("type");
+				buildCoveragePointsForType(context, thisElementPath, typeAsCName, attributeElement, project, false);
 			}
-			
-			String typeAsCName = attributeElement.getAttribute("type");
-			buildCoveragePointsForType(context, thisElementPath, typeAsCName, attributeElement, project, false);
+		} catch(PathTooLongException e) {
+			rulesTruncatedAt.add(e.getParentSelector().toString());
+			// ignore and proceed. Rules will be truncated here, which is what we want
 		}
 	}
 	
-	private void buildCoveragePointsForType(Context<Element> context, INodeSelector thisElementPath, String typeAsCName, Element element, IProject project, boolean followTypeHierarchy) {
+	private void buildCoveragePointsForType(Context<Element> context, RootSelector thisElementPath, String typeAsCName, Element element, IProject project, boolean followTypeHierarchy) {
 		QName typeQName = QNameUtil.resolveQNameFromCName(element, typeAsCName);
 		String formattedQName = QNameUtil.format(typeQName);
 		Element type = StringUtil.isEmpty(typeAsCName) ? getAnonymousType(element) : project.getSchemaTypeByQName(formattedQName);
@@ -171,7 +187,7 @@ public class MeasurementBuilder {
 						
 						Element subTypeElement = project.getSchemaTypeByQName(subType);
 						
-						INodeSelector subTypeElementPath = thisElementPath.clone();
+						RootSelector subTypeElementPath = thisElementPath.clone();
 						subTypeElementPath.getLastSelector().setFilter(new XSITypeFilter(subType, false));
 						List<Element> elements = collectElements(subTypeElement, project.getXMLSchemaContents());
 						for(Element e : elements) {

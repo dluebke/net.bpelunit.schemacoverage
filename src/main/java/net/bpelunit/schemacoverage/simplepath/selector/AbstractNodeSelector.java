@@ -29,6 +29,7 @@ public abstract class AbstractNodeSelector implements INodeSelector {
 		if(this == s) {
 			throw new RuntimeException("Cannot append selector to itself!");
 		}
+		
 		if(next != null) {
 			next.appendSelector(s);
 		} else {
@@ -127,13 +128,24 @@ public abstract class AbstractNodeSelector implements INodeSelector {
 		}
 		return result;
 	}
+	
+	@Override
+	public boolean isInSelectorChain(INodeSelector selector) {
+		if(this == selector) {
+			return true;
+		}
+		if(next == null) {
+			return false;
+		}
+		return next.isInSelectorChain(selector);
+	}
 
 	protected abstract AbstractNodeSelector cloneInternal();
 	
 	@Override
 	public int length() {
 		if(next != null) {
-			return next.length();
+			return next.length() + 1;
 		} else {
 			return 1;
 		}

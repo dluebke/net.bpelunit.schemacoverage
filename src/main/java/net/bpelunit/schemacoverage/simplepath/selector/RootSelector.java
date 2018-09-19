@@ -35,13 +35,27 @@ public class RootSelector implements INodeSelector {
 	}
 
 	@Override
-	public INodeSelector appendSelector(INodeSelector s) {
+	public RootSelector appendSelector(INodeSelector s) {
 		if(next == null) {
 			next = s;
 		} else {
+			if(next.isInSelectorChain(s)) {
+				throw new RuntimeException("Cannot add selector because it already is: " + toString());
+			}
 			next.appendSelector(s);
 		}
-		return s;
+		
+		return this;
+	}
+	
+	public RootSelector appendSelector(INodeSelector s, int maxLength) throws PathTooLongException{
+		if(length() >= maxLength) {
+			throw new PathTooLongException(this, maxLength, s);
+		}
+
+		appendSelector(s);
+		
+		return this;
 	}
 
 	@Override
@@ -53,7 +67,7 @@ public class RootSelector implements INodeSelector {
 	}
 
 	@Override
-	public INodeSelector clone() {
+	public RootSelector clone() {
 		RootSelector result = new RootSelector();
 		if(next != null) {
 			result.next = next.clone();
@@ -91,5 +105,16 @@ public class RootSelector implements INodeSelector {
 	@Override
 	public void setFilter(INodeFilter f) {
 		// TODO What to do if called here?
+	}
+	
+	@Override
+	public boolean isInSelectorChain(INodeSelector selector) {
+		if(this == selector) {
+			return true;
+		}
+		if(next == null) {
+			return false;
+		}
+		return next.isInSelectorChain(selector);
 	}
 }
