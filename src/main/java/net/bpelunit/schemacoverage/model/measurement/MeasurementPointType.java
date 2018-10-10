@@ -74,6 +74,12 @@ public enum MeasurementPointType {
 		public boolean isFulfilled(Set<String> extractedValues, String expectedValue) {
 			return extractedValues.contains("") || extractedValues.contains(expectedValue);
 		}
+	}, 
+	MessageUsed {
+		@Override
+		public boolean isFulfilled(Set<String> extractedValues, String expectedValue) {
+			return extractedValues.contains("1");
+		}
 	};
 
 	public abstract boolean isFulfilled(Set<String> extractedValues, String expectedValue);

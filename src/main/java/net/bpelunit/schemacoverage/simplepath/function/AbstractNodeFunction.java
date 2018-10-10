@@ -26,4 +26,9 @@ public abstract class AbstractNodeFunction implements INodeFunction {
 	public String toString() {
 		return getFunctionName() + "(" + nodeSelector.toString() + ")";
 	}
+	
+	@Override
+	public INodeSelector getNodeSelector() {
+		return nodeSelector;
+	}
 }

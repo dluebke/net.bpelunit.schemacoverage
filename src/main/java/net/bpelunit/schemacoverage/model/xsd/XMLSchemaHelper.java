@@ -152,6 +152,17 @@ public class XMLSchemaHelper {
 			return element;
 		}
 	}
+	
+	public static Element resolveAttributeRefIfNecessary(Element attributeElement, IProject project) {
+		String ref = attributeElement.getAttribute("ref");
+		if(ref != null && !"".equals(ref)) {
+			QName elementName = QNameUtil.resolveQNameFromCName(attributeElement, ref);
+			Element resolvedElement = project.getAttributeElementByQName(QNameUtil.format(elementName));
+			return resolvedElement;
+		} else {
+			return attributeElement;
+		}
+	}
 
 	public static String getName(Element xsdElementOrAttribute) {
 		return xsdElementOrAttribute.getAttribute("name");

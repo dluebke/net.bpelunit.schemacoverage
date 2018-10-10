@@ -42,11 +42,15 @@ public class BpelProject implements IProject {
 	private Set<String> outboundMessages = new HashSet<>();
 	private Set<String> inboundMessages = new HashSet<>();
 	
+	private String name;
+	
 	private XMLSchemasContents xmlSchemasContents = new XMLSchemasContents();
 
 	public static BpelProject readBpelProject(File bpelFile) throws SAXException, IOException {
 		BpelProject project = new BpelProject();
 
+		project.name = bpelFile.getName();
+		
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		DocumentBuilder docBuilder;
@@ -63,24 +67,27 @@ public class BpelProject implements IProject {
 		for (int i = 0; i < importElements.getLength(); i++) {
 			Element importElement = (Element) importElements.item(i);
 			File importFile = new File(bpelFile.getParentFile(), importElement.getAttribute("location"));
-
 			String importType = importElement.getAttribute("importType");
-
-			Document importDocument;
-			FileImport fileImport;
-			switch (importType) {
-			case "http://schemas.xmlsoap.org/wsdl/":
-				importDocument = docBuilder.parse(importFile);
-				fileImport = new FileImport(importFile, importDocument.getDocumentElement());
-				remainingWsdlImports.add(fileImport);
-				break;
-			case "http://www.w3.org/2001/XMLSchema":
-				importDocument = docBuilder.parse(importFile);
-				fileImport = new FileImport(importFile, importDocument.getDocumentElement());
-				remainingXsdImports.add(fileImport);
-				break;
+			try {
+	
+				Document importDocument;
+				FileImport fileImport;
+				switch (importType) {
+				case "http://schemas.xmlsoap.org/wsdl/":
+					importDocument = docBuilder.parse(importFile);
+					fileImport = new FileImport(importFile, importDocument.getDocumentElement());
+					remainingWsdlImports.add(fileImport);
+					break;
+				case "http://www.w3.org/2001/XMLSchema":
+					importDocument = docBuilder.parse(importFile);
+					fileImport = new FileImport(importFile, importDocument.getDocumentElement());
+					remainingXsdImports.add(fileImport);
+					break;
+				}
+			} catch(Exception e) {
+				System.err.println("Warning: Cannot resolve reference '" + importFile + "' for namespace " + importElement.getAttribute("importLocation"));
 			}
-		}
+		} 
 
 		while (remainingWsdlImports.size() > 0) {
 			FileImport wsdlImport = remainingWsdlImports.remove(0);
@@ -278,4 +285,15 @@ public class BpelProject implements IProject {
 	public XMLSchemasContents getXMLSchemaContents() {
 		return xmlSchemasContents;
 	}
+
+	@Override
+	public Element getAttributeElementByQName(String formattedQName) {
+		return xmlSchemasContents.getSchemaAttributesByQName().get(formattedQName);
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+	
 }

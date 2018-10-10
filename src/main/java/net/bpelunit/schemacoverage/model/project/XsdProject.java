@@ -14,13 +14,20 @@ import net.bpelunit.schemacoverage.model.xsd.XMLSchemasContents;
 public class XsdProject implements IProject {
 
 	private XMLSchemasContents xmlSchemasContents;
+	private String name;
 	
 	public static XsdProject readXsdProject(File mainSchemaFile) throws SAXException, IOException {
 		XsdProject result = new XsdProject();
+		result.name = mainSchemaFile.getName();
 		
 		result.xmlSchemasContents = new XMLSchemaReader().readXMLSchemas(mainSchemaFile);
 		
 		return result;
+	}
+	
+	@Override
+	public String getName() {
+		return name;
 	}
 	
 	@Override
@@ -61,5 +68,10 @@ public class XsdProject implements IProject {
 	@Override
 	public XMLSchemasContents getXMLSchemaContents() {
 		return xmlSchemasContents;
+	}
+
+	@Override
+	public Element getAttributeElementByQName(String formattedQName) {
+		return xmlSchemasContents.getSchemaAttributesByQName().get(formattedQName);
 	}
 }

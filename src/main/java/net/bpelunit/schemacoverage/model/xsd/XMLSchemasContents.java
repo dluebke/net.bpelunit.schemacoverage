@@ -22,6 +22,7 @@ public class XMLSchemasContents {
 	private Map<String, Element> schemaTypesByQName = new HashMap<>();
 	private Map<String, Set<String>> directSubtypesByType = new HashMap<>();
 	private Map<String, Element> schemaElementsByQName = new HashMap<>();
+	private Map<String, Element> schemaAttributesByQName = new HashMap<>();
 	private Map<String, Element> schemaElementForNamespace = new HashMap<>();
 	private SetMap<String, String> allSubtypesByType = new SetMap<>();
 	private SetMap<String, String> directSubstitutionsByElement = new SetMap<>();
@@ -35,6 +36,11 @@ public class XMLSchemasContents {
 	public Map<String, Element> getSchemaTypesByQName() {
 		return schemaTypesByQName;
 	}
+	
+	public Map<String, Element> getSchemaAttributesByQName() {
+		return schemaAttributesByQName;
+	}
+	
 	
 	public SetMap<String, String> getAllSubstitutionsByElement() {
 		return allSubstitutionsByElement;
@@ -85,9 +91,7 @@ public class XMLSchemasContents {
 						}
 						directExtensions.add(typeNameAsFormatedQName);
 					}
-				}
-
-				if ("element".equals(e.getLocalName())) {
+				} else if ("element".equals(e.getLocalName())) {
 					String elementName = e.getAttribute("name");
 					String elementFormatedQName = QNameUtil.format(targetNamespace, elementName);
 					schemaElementsByQName.put(elementFormatedQName, e);
@@ -98,6 +102,11 @@ public class XMLSchemasContents {
 								.format(QNameUtil.resolveQNameFromCName(e, substitutionGroup));
 						directSubstitutionsByElement.get(formatedSubstitutionElementQName).add(elementFormatedQName);
 					}
+				} else if ("attribute".equals(e.getLocalName())) {
+					String attributeName = e.getAttribute("name");
+					String attributeFormatedQName = QNameUtil.format(targetNamespace, attributeName);
+					schemaAttributesByQName.put(attributeFormatedQName, e);
+					
 				}
 			}
 		}

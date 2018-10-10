@@ -56,6 +56,4 @@ public class Context<T> {
 	public List<MeasurementPoint> getMeasurementPoints() {
 		return measurementPoints;
 	}
-	
-	
 }

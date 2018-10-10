@@ -1,10 +1,9 @@
 package net.bpelunit.schemacoverage.messagesource;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.w3c.dom.Element;
 

@@ -117,4 +117,11 @@ public class RootSelector implements INodeSelector {
 		}
 		return next.isInSelectorChain(selector);
 	}
+	
+	@Override
+	public INodeSelector getNext() {
+		return next;
+	}
+	
+	
 }

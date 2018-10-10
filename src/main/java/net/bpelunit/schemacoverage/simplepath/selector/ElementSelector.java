@@ -43,7 +43,7 @@ public class ElementSelector extends AbstractNodeSelector {
 			&&
 			localName.equals(n.getLocalName())
 			&&
-			(namespaceUri != null ? namespaceUri.equals(n.getNamespaceURI()) : n.getNamespaceURI() == null)
+			(StringUtil.isEmpty(namespaceUri) ? StringUtil.isEmpty(n.getNamespaceURI()) : namespaceUri.equals(n.getNamespaceURI()))
 		;
 	}
 	

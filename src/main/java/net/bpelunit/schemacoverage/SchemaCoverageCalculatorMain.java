@@ -1,7 +1,6 @@
 package net.bpelunit.schemacoverage;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +32,9 @@ import net.bpelunit.schemacoverage.model.measurement.MeasurementPointType;
 import net.bpelunit.schemacoverage.model.project.BpelProject;
 import net.bpelunit.schemacoverage.model.project.IProject;
 import net.bpelunit.schemacoverage.model.project.XsdProject;
+import net.bpelunit.schemacoverage.report.CSVWriter;
+import net.bpelunit.schemacoverage.report.IReportWriter;
+import net.bpelunit.schemacoverage.report.html.HtmlCoverageWriter;
 import net.bpelunit.schemacoverage.util.CounterMap;
 import net.bpelunit.schemacoverage.xml.QNameUtil;
 
@@ -58,8 +60,11 @@ public class SchemaCoverageCalculatorMain {
 	private static final String COMMANDLINEOPTION_MESSAGESOURCE_BPELUNITXMLLOG = "bpelunitxmllog";
 	private static final String COMMANDLINEOPTION_MESSAGESOURCE_XMLFILES = "d";
 	private static final String COMMANDLINEOPTION_OUTPUT_CSV = "csv";
+	private static final String COMMANDLINEOPTION_OUTPUT_HTML = "html";
 	private static final String COMMANDLINEOPTION_IGNORE_INBOUND = "ignoreinbound";
 	private static final String COMMANDLINEOPTION_IGNORE_OUTBOUND = "ignoreoutbound";
+	private static final String COMMANDLINEOPTION_IGNORE_ALLINBOUND = "ignoreallinbound";
+	private static final String COMMANDLINEOPTION_IGNORE_ALLOUTBOUND = "ignorealloutbound";
 	private static final String COMMANDLINEOPTION_IGNORE_MESSAGES = "ignoremessage";
 	
 	private static final String DEFAULT_OUTPUT_FILENAME = "report.csv";
@@ -115,6 +120,12 @@ public class SchemaCoverageCalculatorMain {
 		if(cmd.hasOption(COMMANDLINEOPTION_OUTPUT_CSV)) {
 			csvFileName = cmd.getOptionValue(COMMANDLINEOPTION_OUTPUT_CSV);
 		}
+		List<IReportWriter> reportWriters = new ArrayList<>();
+		reportWriters.add(new CSVWriter(csvFileName));
+		
+		if(cmd.hasOption(COMMANDLINEOPTION_OUTPUT_HTML)) {
+			reportWriters.add(new HtmlCoverageWriter(new File(cmd.getOptionValue(COMMANDLINEOPTION_OUTPUT_HTML))));
+		}
 		
 		// resolve used messages
 		Set<String> inboundMessages = project.getInboundMessageElements();
@@ -129,12 +140,18 @@ public class SchemaCoverageCalculatorMain {
 
 		// Ignore messages specified by user
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_INBOUND)) {
-			String[] ignore = cmd.getOptionValues(COMMANDLINEOPTION_IGNORE_INBOUND);
+			String[] ignore = cmd.getOptionValue(COMMANDLINEOPTION_IGNORE_INBOUND).split(",");
 			inboundMessages.removeAll(Arrays.asList(ignore));
 		}
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_OUTBOUND)) {
-			String[] ignore = cmd.getOptionValues(COMMANDLINEOPTION_IGNORE_OUTBOUND);
+			String[] ignore = cmd.getOptionValue(COMMANDLINEOPTION_IGNORE_OUTBOUND).split(",");
 			outboundMessages.removeAll(Arrays.asList(ignore));
+		}
+		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_ALLINBOUND)) {
+			inboundMessages.clear();
+		}
+		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_ALLOUTBOUND)) {
+			outboundMessages.clear();
 		}
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_MESSAGES)) {
 			String[] ignore = cmd.getOptionValues(COMMANDLINEOPTION_IGNORE_MESSAGES);
@@ -202,42 +219,23 @@ public class SchemaCoverageCalculatorMain {
 		Map<String, Context<Element>> allContexts = new HashMap<>();
 		allContexts.putAll(inboundContexts);
 		allContexts.putAll(outboundContexts);
-		try (FileWriter out = new FileWriter(csvFileName)) {
-			
-			int fulfilled = 0;
-			String headerLine = String.join("\t",
-					"Context Type", 
-					"Context Name",
-					"Measurement Point", 
-					"Path Expression", 
-					"Expected Value", 
-					"Encountered Values", 
-					"Statisfied"
-					);
-			out.write(headerLine); 
-			out.write("\n");
-			for(Context<Element> ctx : allContexts.values()) {
-				for(MeasurementPoint m : ctx.getMeasurementPoints()) {
-					boolean measurementFulfilled = m.isFulfilled();
-					String resultLine = String.join("\t",
-							ctx.getType().toString(), 
-							ctx.getName(),
-							m.getMeasurementPointType().toString(), 
-							m.getPath().toString(), 
-							m.getExpectedValue() != null ? m.getExpectedValue() : "", 
-							String.join(",", m.getExtractedValues()), 
-							measurementFulfilled+ ""
-						);
-					out.write(resultLine); 
-					out.write("\n");
-					if(measurementFulfilled) {
-						fulfilled++;
-					}
+		
+		for(IReportWriter reportWriter : reportWriters) {
+			reportWriter.writeReport(project, allContexts);
+		}
+		
+		int fulfilled = 0;
+		for(Context<Element> ctx : allContexts.values()) {
+			for(MeasurementPoint m : ctx.getMeasurementPoints()) {
+				if(m.isFulfilled()) {
+					fulfilled++;
 				}
 			}
-			System.out.println("Coverage: " + fulfilled + "/" + measurementPoints.size() + " = " + (fulfilled * 100 / measurementPoints.size()) + "%");
 		}
+		System.out.println("Coverage: " + fulfilled + "/" + measurementPoints.size() + " = " + (fulfilled * 100 / measurementPoints.size()) + "%");
 	}
+
+	
 
 	private void printHelpAndExit(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
@@ -252,8 +250,11 @@ public class SchemaCoverageCalculatorMain {
 		options.addOption(COMMANDLINEOPTION_MESSAGESOURCE_BPELUNITXMLLOG, true, "Read test data from BPELUnit XML log file (use bpelunit -x log.xml)");
 		options.addOption(COMMANDLINEOPTION_MESSAGESOURCE_XMLFILES, true, "Read test data from XML files located in a specified directory");
 		options.addOption(COMMANDLINEOPTION_OUTPUT_CSV, true, "CSV File to write results to, default: " + DEFAULT_OUTPUT_FILENAME);
+		options.addOption(COMMANDLINEOPTION_OUTPUT_HTML, true, "Directory to write HTMLK reports to");
 		options.addOption(COMMANDLINEOPTION_IGNORE_INBOUND, true, "Comma-separated QNames of inbound messages to ignore in form of {namespace}localname");
 		options.addOption(COMMANDLINEOPTION_IGNORE_OUTBOUND, true, "Comma-separated QNames of outbound messages to ignore in form of {namespace}localname");
+		options.addOption(COMMANDLINEOPTION_IGNORE_ALLINBOUND, false, "Ignore all inbound messages");
+		options.addOption(COMMANDLINEOPTION_IGNORE_ALLOUTBOUND, false, "Ignore all outbound messages");
 		options.addOption(COMMANDLINEOPTION_IGNORE_MESSAGES, true, "Comma-separated QNames of messages to ignore inbound and outbound in form of {namespace}localname");
 		return options;
 	}

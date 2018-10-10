@@ -47,19 +47,5 @@ public class XsdEnd2EndTest {
 		
 		SchemaCoverageCalculatorMain.main(args);
 	}
-	
-	@Test
-	public void testBPELThilo_XML() throws Exception {
-		String[] args = new String[]{
-				"-bpel",
-				"C:\\data\\transfer\\facet-classification-generator\\bpelunit-facet-classification-generator\\thilo-processes\\thilo\\LoanProcessExample\\bpel\\LoanProcess.bpel",
-				"-d",
-				"src/test/resources/end2end/schema2",
-				"-csv",
-				"target/loanprocess_xml.csv"
-		};
-		
-		SchemaCoverageCalculatorMain.main(args);
-	}
 
 }

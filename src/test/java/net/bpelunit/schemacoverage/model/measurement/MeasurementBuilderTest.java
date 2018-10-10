@@ -1,7 +1,6 @@
 package net.bpelunit.schemacoverage.model.measurement;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +32,7 @@ public class MeasurementBuilderTest {
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(2, measurementPoints.size());
 		List<Object> mpAsStrings = Arrays.asList(measurementPoints.stream().map(x -> x.toString()).toArray());
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}StringElement)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MessageUsed:count(/{http://www.example.org/MeasurementBuilderTest}StringElement)[=1]"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MultipleValues:text(/{http://www.example.org/MeasurementBuilderTest}StringElement)"));
 	}
 	
@@ -46,7 +45,7 @@ public class MeasurementBuilderTest {
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(3, measurementPoints.size());
 		List<Object> mpAsStrings = Arrays.asList(measurementPoints.stream().map(x -> x.toString()).toArray());
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}BooleanElement)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MessageUsed:count(/{http://www.example.org/MeasurementBuilderTest}BooleanElement)[=1]"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("BooleanTrue:text(/{http://www.example.org/MeasurementBuilderTest}BooleanElement)"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("BooleanFalse:text(/{http://www.example.org/MeasurementBuilderTest}BooleanElement)"));
 	}
@@ -60,7 +59,7 @@ public class MeasurementBuilderTest {
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(measurementPoints.toString(), 3, measurementPoints.size());
 		List<Object> mpAsStrings = Arrays.asList(measurementPoints.stream().map(x -> x.toString()).toArray());
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}EnumElement)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MessageUsed:count(/{http://www.example.org/MeasurementBuilderTest}EnumElement)[=1]"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("EnumLiteralUsed:text(/{http://www.example.org/MeasurementBuilderTest}EnumElement)[=A]"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("EnumLiteralUsed:text(/{http://www.example.org/MeasurementBuilderTest}EnumElement)[=B]"));
 	}
@@ -74,7 +73,7 @@ public class MeasurementBuilderTest {
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(measurementPoints.toString(), 7, measurementPoints.size());
 		List<Object> mpAsStrings = Arrays.asList(measurementPoints.stream().map(x -> x.toString()).toArray());
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}SubstitutionElement)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MessageUsed:count(/{http://www.example.org/MeasurementBuilderTest}SubstitutionElement)[=1]"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}SubstitutionElement/{http://www.example.org/MeasurementBuilderTest}Parent)[=1]"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("BooleanTrue:text(/{http://www.example.org/MeasurementBuilderTest}SubstitutionElement/{http://www.example.org/MeasurementBuilderTest}Parent)"));
 		assertTrue(measurementPoints.toString(), mpAsStrings.contains("BooleanFalse:text(/{http://www.example.org/MeasurementBuilderTest}SubstitutionElement/{http://www.example.org/MeasurementBuilderTest}Parent)"));
@@ -90,17 +89,29 @@ public class MeasurementBuilderTest {
 		new MeasurementBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
-		assertEquals(measurementPoints.toString(), 9, measurementPoints.size());
+		assertEquals(measurementPoints.toString(), 3, measurementPoints.size());
 		List<Object> mpAsStrings = Arrays.asList(measurementPoints.stream().map(x -> x.toString()).toArray());
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement)[=1]"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("DeclaredTypeInHierarchy:xsi:type[default:{http://www.example.org/MeasurementBuilderTest}tTopLevel](/{http://www.example.org/MeasurementBuilderTest}InheritanceElement)[={http://www.example.org/MeasurementBuilderTest}tTopLevel]"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("TypeInHierarchy:xsi:type[default:{http://www.example.org/MeasurementBuilderTest}tTopLevel](/{http://www.example.org/MeasurementBuilderTest}InheritanceElement)[={http://www.example.org/MeasurementBuilderTest}tLevel2]"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}Y[xsi:type={http://www.example.org/MeasurementBuilderTest}tLevel2])[=1]"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MultipleValues:text(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}Y[xsi:type={http://www.example.org/MeasurementBuilderTest}tLevel2])"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}X[xsi:type={http://www.example.org/MeasurementBuilderTest}tLevel2])[=1]"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MultipleValues:text(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}X[xsi:type={http://www.example.org/MeasurementBuilderTest}tLevel2])"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}X[xsi:type?={http://www.example.org/MeasurementBuilderTest}tTopLevel])[=1]"));
-		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MultipleValues:text(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}X[xsi:type?={http://www.example.org/MeasurementBuilderTest}tTopLevel])"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MessageUsed:count(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}X)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MultipleValues:text(/{http://www.example.org/MeasurementBuilderTest}InheritanceElement/{http://www.example.org/MeasurementBuilderTest}X)"));
 	}
 
+	@Test
+	public void testNestedInlineTypes() throws Exception {
+		project = XsdProject.readXsdProject(new File("src/test/resources/SchemaWithInlineType.xsd"));
+		
+		String qName = "{http://www.example.org/SchemaWithNestedInlineType}A";
+		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementBuilder().buildMeasurements(ctx, project);
+		
+		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
+		assertEquals(measurementPoints.toString(), 4, measurementPoints.size());
+		
+		
+		String mpAsStrings = measurementPoints.toString();
+		assertTrue(measurementPoints.toString(), mpAsStrings .contains("MessageUsed:count(/{http://www.example.org/SchemaWithNestedInlineType}A)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/SchemaWithNestedInlineType}A/{http://www.example.org/SchemaWithNestedInlineType}B)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MandatoryNodeUsed:count(/{http://www.example.org/SchemaWithNestedInlineType}A/{http://www.example.org/SchemaWithNestedInlineType}B/{http://www.example.org/SchemaWithNestedInlineType}B)[=1]"));
+		assertTrue(measurementPoints.toString(), mpAsStrings.contains("MultipleValues:text(/{http://www.example.org/SchemaWithNestedInlineType}A/{http://www.example.org/SchemaWithNestedInlineType}B/{http://www.example.org/SchemaWithNestedInlineType}B)"));
+	}
 }

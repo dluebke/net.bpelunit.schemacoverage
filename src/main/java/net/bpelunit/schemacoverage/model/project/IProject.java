@@ -23,5 +23,9 @@ public interface IProject {
 	Set<String> getAllSubtypesForType(String formattedQName);
 
 	XMLSchemasContents getXMLSchemaContents();
+
+	Element getAttributeElementByQName(String formattedQName);
+
+	String getName();
 	
 }
