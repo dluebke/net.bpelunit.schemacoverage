@@ -36,7 +36,7 @@ public class CSVWriter implements IReportWriter {
 					Set<String> extractedValues = m.getExtractedValues();
 					List<String> sanitizedExtractedValues = new ArrayList<>(extractedValues.size());
 					for(String s : extractedValues) {
-						sanitizedExtractedValues.add(s.replaceAll("\t", " "));
+						sanitizedExtractedValues.add(s.replaceAll("\t", " ").replaceAll("\n", " "));
 					}
 					String resultLine = String.join("\t",
 							project.getName(),
