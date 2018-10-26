@@ -209,9 +209,6 @@ public class MeasurementPointBuilder {
 			// only follow complex types
 			if(followTypeHierarchy) {
 				Set<String> allSubTypes = project.getAllSubtypesForType(formattedQName);
-				if(formattedQName.equals("{http://schemas.terravis.ch/GBBasisTypen/2.0}PersonGBType")) {
-					System.out.println(allSubTypes);
-				}
 				if(allSubTypes != null && allSubTypes.size() > 0) {
 					INodeFunction typeFunctionElementPath = new TypeFunction(thisElementPath.clone(), formattedQName);
 					thisElementPath = thisElementPath.clone();
