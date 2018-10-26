@@ -20,6 +20,7 @@ import net.bpelunit.schemacoverage.model.measurement.MeasurementPoint;
 import net.bpelunit.schemacoverage.model.measurement.MeasurementPointType;
 import net.bpelunit.schemacoverage.model.project.IProject;
 import net.bpelunit.schemacoverage.report.IReportWriter;
+import net.bpelunit.schemacoverage.util.CounterMap;
 import net.bpelunit.schemacoverage.util.ListMap;
 
 public class HtmlCoverageWriter implements IReportWriter {
@@ -42,6 +43,8 @@ public class HtmlCoverageWriter implements IReportWriter {
 	}
 
 	private void writeHtmlCoverage(Context<Element> context, IProject project) throws IOException {
+		CounterMap<MeasurementPointType> fulfilledmeasurementPointTypes = new CounterMap<>();
+		CounterMap<MeasurementPointType> allMeasurementPointTypes = new CounterMap<>();
 		ListMap<String, MeasurementPoint> results = analyzeContext(context);
 		List<String> sortedElements = new ArrayList<>(results.keySet());
 		Collections.sort(sortedElements);
@@ -67,25 +70,37 @@ public class HtmlCoverageWriter implements IReportWriter {
 			writeTag(out, "h2", context.getName());
 			
 			out.write("<table border=\"1\" cellpadding=\"0\" cellspacing=\"0\">");
-			out.write("<tr><th>Element</th>");
+			out.write("<thead>");
+			out.write("<tr>");
+			writeTag(out, "th", "Element");
+			writeTag(out, "th", "Coverage");
 			for(MeasurementPointType mpt : MeasurementPointType.values()) {
 				out.write("<th class=\"norotate\">" + mpt + "</th>");
 			}
 			out.write("</tr>");
+			out.write("</thead>");
+			
+			out.write("<tbody style=\"overflow: auto;\">");
 			for(String element : sortedElements) {
 				out.write("<tr>");
 				List<MeasurementPoint> measurementPoints = results.get(element);
 				
+				int countRulesFulfilled = getCountRulesFulfilled(measurementPoints);
+				boolean allRulesFulfilled = countRulesFulfilled == measurementPoints.size();
 				out.write("<td>");
-				writeTag(out, "span class=\"measuredobject depth" + getPathDepth(element) + "\"", colorPath(element, allRulesFufilled(measurementPoints)));
+				writeTag(out, "span class=\"measuredobject depth" + getPathDepth(element) + "\"", colorPath(element, allRulesFulfilled));
 				out.write("</td>");
+				String style = allRulesFulfilled ? "covered" : "notcovered";
+				writeTag(out, "td class=\"" + style + "\"", countRulesFulfilled + "/" + measurementPoints.size());
 				for(MeasurementPointType mpt : MeasurementPointType.values()) {
 					out.write("<td>");
-					if(mpt != MeasurementPointType.EnumLiteralUsed) {
+					if(mpt != MeasurementPointType.EnumLiteralUsed && mpt != MeasurementPointType.DeclaredTypeInHierarchy && mpt != MeasurementPointType.TypeInHierarchy) {
 						MeasurementPoint mp = getFirstMeasurementPointForType(measurementPoints, mpt);
 						if(mp != null) {
+							allMeasurementPointTypes.inc(mpt);
 							if(mp.isFulfilled()) {
-								writeTag(out, "span", "ok");
+								fulfilledmeasurementPointTypes.inc(mpt);
+								writeTag(out, "span class=\"covered\"", "ok");
 							} else {
 								String extractedValues = stringJoin(",", mp.getExtractedValues());
 								if(extractedValues.equals("")) {
@@ -97,7 +112,13 @@ public class HtmlCoverageWriter implements IReportWriter {
 					} else {
 						List<MeasurementPoint> mps = getMeasurementPointsForType(measurementPoints, mpt);
 						for(MeasurementPoint mp : mps) {
-							String style = mp.isFulfilled() ? "covered" : "notcovered";
+							allMeasurementPointTypes.inc(mpt);
+							if(mp.isFulfilled()) {
+								style = "covered";
+								fulfilledmeasurementPointTypes.inc(mpt);
+							} else {
+								style = "notcovered";
+							}
 							writeTag(out, "span class=\"" + style + "\"", mp.getExpectedValue() + " ");
 						}
 					}
@@ -105,6 +126,18 @@ public class HtmlCoverageWriter implements IReportWriter {
 				}
 				out.write("</tr>");
 			}
+			out.write("</tbody>");
+			
+			out.write("<tr>");
+			writeTag(out, "th", "Summary/Total");
+			writeTag(out, "th", fulfilledmeasurementPointTypes.sum() +  "/" + allMeasurementPointTypes.sum());
+			for(MeasurementPointType mpt : MeasurementPointType.values()) {
+				int all = allMeasurementPointTypes.get(mpt);
+				int fulfilled = fulfilledmeasurementPointTypes.get(mpt);
+				String style = all == fulfilled ? "covered" : "notcovered";
+				writeTag(out, "th class=\"" + style + "\"", fulfilled + "/" + all);
+			}
+			out.write("</tr>");
 			out.write("</table>");
 			
 			out.write("</body></html>");
@@ -137,31 +170,34 @@ public class HtmlCoverageWriter implements IReportWriter {
 	}
 
 	private String colorPath(String pathAsString, boolean allRulesFufilled) {
-		pathAsString = pathAsString.replaceAll("\\{[^\\}]*\\}", "");
 		StringBuilder result = new StringBuilder();
+
+		String lastPathElement = pathAsString.replaceAll("\\{[^\\}]*\\}", "");
+		int index = Math.max(lastPathElement.lastIndexOf("/"), lastPathElement.lastIndexOf("}")) + 1;
+		lastPathElement = lastPathElement.substring(index);
 		
-		int index = Math.max(pathAsString.lastIndexOf("/"), pathAsString.lastIndexOf("}")) + 1;
-		
-		result.append("<span class=\"");
+		result.append("<span class=\"tooltip ");
 		if(allRulesFufilled) {
 			result.append("covered");
 		} else {
 			result.append("notcovered");
 		}
 		result.append("\">");
-		result.append(pathAsString.substring(index));
+		result.append(lastPathElement);
+		result.append("<span class=\"tooltiptext\">").append(pathAsString).append("</span>");
 		result.append("</span>");
 		
 		return result.toString();
 	}
 
-	private boolean allRulesFufilled(List<MeasurementPoint> measurementPoints) {
+	private int getCountRulesFulfilled(List<MeasurementPoint> measurementPoints) {
+		int result = 0;
 		for(MeasurementPoint mp : measurementPoints) {
-			if(!mp.isFulfilled()) {
-				return false;
+			if(mp.isFulfilled()) {
+				result++;
 			}
 		}
-		return true;
+		return result;
 	}
 
 	private String getFilenameToken(String name) {
@@ -188,8 +224,8 @@ public class HtmlCoverageWriter implements IReportWriter {
 		ListMap<String, MeasurementPoint> result = new ListMap<>();
 				
 		for(MeasurementPoint mp : context.getMeasurementPoints()) {
-			String path = mp.getPath().getNodeSelector().toString();
-			path = path.replaceAll("\\[[^\\]]*\\]", "");
+			String path = mp.getMeasuredElement();
+//			path = path.replaceAll("\\[[^\\]]*\\]", "");
 			result.get(path).add(mp);
 		}
 		return result;

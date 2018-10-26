@@ -1,4 +1,4 @@
-package net.bpelunit.schemacoverage.model;
+package net.bpelunit.schemacoverage.model.bpel;
 
 import java.io.File;
 

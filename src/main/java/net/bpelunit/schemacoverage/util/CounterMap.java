@@ -19,4 +19,13 @@ public class CounterMap<K> extends HashMap<K, Integer>{
 		put(key, newValue);
 		return newValue;
 	}
+
+	public int sum() {
+		int result = 0;
+		for(Integer i : values()) {
+			if(i != null)
+				result += i;
+		}
+		return result;
+	}
 }

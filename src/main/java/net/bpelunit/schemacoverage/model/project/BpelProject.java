@@ -39,8 +39,10 @@ public class BpelProject implements IProject {
 	private Map<String, Element> portTypesByQName = new HashMap<>();
 	private Map<String, Element> partnerLinkTypesByQName = new HashMap<>();
 	private Map<String, Element> allMessagesByQName = new HashMap<>();
-	private Set<String> outboundMessages = new HashSet<>();
-	private Set<String> inboundMessages = new HashSet<>();
+	private Set<String> providerRequestMessages = new HashSet<>();
+	private Set<String> providerResponseMessages = new HashSet<>();
+	private Set<String> consumerRequestMessages = new HashSet<>();
+	private Set<String> consumerResponseMessages = new HashSet<>();
 	
 	private String name;
 	
@@ -174,12 +176,12 @@ public class BpelProject implements IProject {
 				Element e = (Element) operationNodes.item(i);
 				String operationname = e.getAttribute("operation");
 				String partnerLinkName = e.getAttribute("partnerLink");
-				boolean isSending = "invoke".equals(e.getLocalName());
+				boolean isProcessConsumer = "invoke".equals(e.getLocalName());
 
 				XPathExpression partnerLinkExpression = xpath
 						.compile("ancestor::*//bpel:partnerLink[@name='" + partnerLinkName + "']");
 				Element partnerLinkElement = (Element) partnerLinkExpression.evaluate(e, XPathConstants.NODE);
-				String role = isSending ? partnerLinkElement.getAttribute("partnerRole")
+				String role = isProcessConsumer ? partnerLinkElement.getAttribute("partnerRole")
 						: partnerLinkElement.getAttribute("myRole");
 
 				String partnerLinkTypeQName = partnerLinkElement.getAttribute("partnerLinkType");
@@ -202,8 +204,10 @@ public class BpelProject implements IProject {
 					}
 				}
 				NodeList operationChildren = operationElement.getChildNodes();
-				Set<QName> inboundMessageQNames = new HashSet<>();
-				Set<QName> outboundMessageQNames = new HashSet<>();
+				Set<QName> consumerRequestMessageQNames = new HashSet<>();
+				Set<QName> consumerResponseMessageQNames = new HashSet<>();
+				Set<QName> providerRequestMessageQNames = new HashSet<>();
+				Set<QName> providerResponseMessageQNames = new HashSet<>();
 				for (int j = 0; j < operationChildren.getLength(); j++) {
 					Node n = operationChildren.item(j);
 					if (n.getAttributes() != null) {
@@ -211,31 +215,28 @@ public class BpelProject implements IProject {
 						if (messageAttributeNode != null) {
 							QName messageQName = QNameUtil.resolveQNameFromCName(n,
 									messageAttributeNode.getNodeValue());
-							if ((!isSending && "input".equals(n.getLocalName()))
-									|| (isSending && !"input".equals(n.getLocalName()))) {
-								inboundMessageQNames.add(messageQName);
+							
+							if(isProcessConsumer) {
+								if("input".equals(n.getLocalName())) {
+									consumerRequestMessageQNames.add(messageQName);
+								} else {
+									consumerResponseMessageQNames.add(messageQName);
+								}
 							} else {
-								outboundMessageQNames.add(messageQName);
+								if("input".equals(n.getLocalName())) {
+									providerRequestMessageQNames.add(messageQName);
+								} else {
+									providerResponseMessageQNames.add(messageQName);
+								}
 							}
 						}
 					}
 				}
-				for (QName messageQName : inboundMessageQNames) {
-					Element message = allMessagesByQName.get(QNameUtil.format(messageQName));
-					NodeList partElements = message.getElementsByTagNameNS(message.getNamespaceURI(), "part");
-					for (int j = 0; j < partElements.getLength(); j++) {
-						Element partElement = (Element) partElements.item(j);
-						inboundMessages.add(QNameUtil.format(QNameUtil.resolveQNameFromCName(partElement, partElement.getAttribute("element"))));
-					}
-				}
-				for (QName messageQName : outboundMessageQNames) {
-					Element message = allMessagesByQName.get(QNameUtil.format(messageQName));
-					NodeList partElements = message.getElementsByTagNameNS(message.getNamespaceURI(), "part");
-					for (int j = 0; j < partElements.getLength(); j++) {
-						Element partElement = (Element) partElements.item(j);
-						outboundMessages.add(QNameUtil.format(QNameUtil.resolveQNameFromCName(partElement, partElement.getAttribute("element"))));
-					}
-				}
+
+				resolveMessageQNamesToElements(consumerRequestMessageQNames, consumerRequestMessages);
+				resolveMessageQNamesToElements(consumerResponseMessageQNames, consumerResponseMessages);
+				resolveMessageQNamesToElements(providerRequestMessageQNames, providerRequestMessages);
+				resolveMessageQNamesToElements(providerResponseMessageQNames, providerResponseMessages);
 			}
 		} catch (XPathExpressionException e) {
 			throw new RuntimeException("This is a programming error!");
@@ -246,16 +247,37 @@ public class BpelProject implements IProject {
 		return result;
 	}
 
-	@Override
-	public Set<String> getInboundMessageElements() {
-		return inboundMessages;
+	private void resolveMessageQNamesToElements(Set<QName> messageQNames, Set<String> messageSet) {
+		for (QName messageQName : messageQNames) {
+			Element message = allMessagesByQName.get(QNameUtil.format(messageQName));
+			NodeList partElements = message.getElementsByTagNameNS(message.getNamespaceURI(), "part");
+			for (int j = 0; j < partElements.getLength(); j++) {
+				Element partElement = (Element) partElements.item(j);
+				messageSet.add(QNameUtil.format(QNameUtil.resolveQNameFromCName(partElement, partElement.getAttribute("element"))));
+			}
+		}
 	}
 
 	@Override
-	public Set<String> getOutboundMessageElements() {
-		return outboundMessages;
+	public Set<String> getProviderRequestMessages() {
+		return providerRequestMessages;
 	}
-
+	
+	@Override
+	public Set<String> getProviderResponseMessages() {
+		return providerResponseMessages;
+	}
+	
+	@Override
+	public Set<String> getConsumerRequestMessages() {
+		return consumerRequestMessages;
+	}
+	
+	@Override
+	public Set<String> getConsumerResponseMessages() {
+		return consumerResponseMessages;
+	}
+	
 	@Override
 	public Element getSchemaElementByQName(String qName) {
 		return xmlSchemasContents.getSchemaElementsByQName().get(qName);

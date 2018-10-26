@@ -26,8 +26,8 @@ public class MeasurementBuilderTest {
 	@Test
 	public void testSimpleElement() {
 		String qName = "{http://www.example.org/MeasurementBuilderTest}StringElement";
-		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
-		new MeasurementBuilder().buildMeasurements(ctx, project);
+		Context<Element> ctx = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementPointBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(2, measurementPoints.size());
@@ -39,8 +39,8 @@ public class MeasurementBuilderTest {
 	@Test
 	public void testBooleanElement() {
 		String qName = "{http://www.example.org/MeasurementBuilderTest}BooleanElement";
-		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
-		new MeasurementBuilder().buildMeasurements(ctx, project);
+		Context<Element> ctx = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementPointBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(3, measurementPoints.size());
@@ -53,8 +53,8 @@ public class MeasurementBuilderTest {
 	@Test
 	public void testEnumElement() {
 		String qName = "{http://www.example.org/MeasurementBuilderTest}EnumElement";
-		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
-		new MeasurementBuilder().buildMeasurements(ctx, project);
+		Context<Element> ctx = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementPointBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(measurementPoints.toString(), 3, measurementPoints.size());
@@ -67,8 +67,8 @@ public class MeasurementBuilderTest {
 	@Test
 	public void testSubstitutionElement() {
 		String qName = "{http://www.example.org/MeasurementBuilderTest}SubstitutionElement";
-		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
-		new MeasurementBuilder().buildMeasurements(ctx, project);
+		Context<Element> ctx = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementPointBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(measurementPoints.toString(), 7, measurementPoints.size());
@@ -85,8 +85,8 @@ public class MeasurementBuilderTest {
 	@Test
 	public void testInheritanceElement() {
 		String qName = "{http://www.example.org/MeasurementBuilderTest}InheritanceElement";
-		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
-		new MeasurementBuilder().buildMeasurements(ctx, project);
+		Context<Element> ctx = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementPointBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(measurementPoints.toString(), 3, measurementPoints.size());
@@ -101,8 +101,8 @@ public class MeasurementBuilderTest {
 		project = XsdProject.readXsdProject(new File("src/test/resources/SchemaWithInlineType.xsd"));
 		
 		String qName = "{http://www.example.org/SchemaWithNestedInlineType}A";
-		Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, qName, project.getSchemaElementByQName(qName));
-		new MeasurementBuilder().buildMeasurements(ctx, project);
+		Context<Element> ctx = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, qName, project.getSchemaElementByQName(qName));
+		new MeasurementPointBuilder().buildMeasurements(ctx, project);
 		
 		List<MeasurementPoint> measurementPoints = ctx.getMeasurementPoints();
 		assertEquals(measurementPoints.toString(), 4, measurementPoints.size());

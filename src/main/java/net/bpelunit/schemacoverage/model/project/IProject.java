@@ -8,10 +8,6 @@ import net.bpelunit.schemacoverage.model.xsd.XMLSchemasContents;
 
 public interface IProject {
 
-	Set<String> getInboundMessageElements();
-
-	Set<String> getOutboundMessageElements();
-
 	Element getSchemaElementByQName(String qName);
 
 	Element getSchemaForNamespace(String namespace);
@@ -27,5 +23,13 @@ public interface IProject {
 	Element getAttributeElementByQName(String formattedQName);
 
 	String getName();
+
+	Set<String> getProviderRequestMessages();
+
+	Set<String> getProviderResponseMessages();
+
+	Set<String> getConsumerRequestMessages();
+
+	Set<String> getConsumerResponseMessages();
 	
 }

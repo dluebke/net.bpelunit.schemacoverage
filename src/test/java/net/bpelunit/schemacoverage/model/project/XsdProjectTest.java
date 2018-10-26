@@ -17,11 +17,13 @@ public class XsdProjectTest {
 		assertNotNull(project);
 		assertNotNull(project.getSchemaForNamespace("http://www.example.org/SimpleSchema"));
 		
-		Set<String> inboundMessageElements = project.getInboundMessageElements();
+		Set<String> inboundMessageElements = project.getProviderRequestMessages();
 		assertEquals(1, inboundMessageElements.size());
 		assertTrue(inboundMessageElements.contains("{http://www.example.org/SimpleSchema}A"));
 		
-		assertEquals(0, project.getOutboundMessageElements().size());
+		assertEquals(0, project.getProviderResponseMessages().size());
+		assertEquals(0, project.getConsumerRequestMessages().size());
+		assertEquals(0, project.getConsumerResponseMessages().size());
 		
 		assertNotNull(project.getSchemaElementByQName("{http://www.example.org/SimpleSchema}A"));
 		assertNotNull(project.getSchemaTypeByQName("{http://www.example.org/SimpleSchema}tComplexType"));
@@ -36,13 +38,15 @@ public class XsdProjectTest {
 		assertNotNull(project);
 		assertNotNull(project.getSchemaForNamespace("http://www.example.org/SchemaWithSubstitutionGroup"));
 		
-		Set<String> inboundMessageElements = project.getInboundMessageElements();
+		Set<String> inboundMessageElements = project.getProviderRequestMessages();
 		assertEquals(3, inboundMessageElements.size());
 		assertTrue(inboundMessageElements.contains("{http://www.example.org/SchemaWithSubstitutionGroup}A"));
 		assertTrue(inboundMessageElements.contains("{http://www.example.org/SchemaWithSubstitutionGroup}B"));
 		assertTrue(inboundMessageElements.contains("{http://www.example.org/SchemaWithSubstitutionGroup}C"));
 		
-		assertEquals(0, project.getOutboundMessageElements().size());
+		assertEquals(0, project.getProviderResponseMessages().size());
+		assertEquals(0, project.getConsumerRequestMessages().size());
+		assertEquals(0, project.getConsumerResponseMessages().size());
 		
 		assertNotNull(project.getSchemaElementByQName("{http://www.example.org/SchemaWithSubstitutionGroup}A"));
 		assertNotNull(project.getSchemaElementByQName("{http://www.example.org/SchemaWithSubstitutionGroup}B"));
@@ -61,11 +65,13 @@ public class XsdProjectTest {
 		assertNotNull(project);
 		assertNotNull(project.getSchemaForNamespace("http://www.example.org/SchemaWithTypeInheritance"));
 		
-		Set<String> inboundMessageElements = project.getInboundMessageElements();
+		Set<String> inboundMessageElements = project.getProviderRequestMessages();
 		assertEquals(1, inboundMessageElements.size());
 		assertTrue(inboundMessageElements.contains("{http://www.example.org/SchemaWithTypeInheritance}A"));
 		
-		assertEquals(0, project.getOutboundMessageElements().size());
+		assertEquals(0, project.getProviderResponseMessages().size());
+		assertEquals(0, project.getConsumerRequestMessages().size());
+		assertEquals(0, project.getConsumerResponseMessages().size());
 		
 		assertNotNull(project.getSchemaElementByQName("{http://www.example.org/SchemaWithTypeInheritance}A"));
 

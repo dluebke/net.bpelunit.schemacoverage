@@ -31,15 +31,25 @@ public class XsdProject implements IProject {
 	}
 	
 	@Override
-	public Set<String> getInboundMessageElements() {
-		return xmlSchemasContents.getSchemaElementsByQName().keySet();
-	}
-
-	@Override
-	public Set<String> getOutboundMessageElements() {
+	public Set<String> getConsumerRequestMessages() {
 		return Collections.emptySet();
 	}
 
+	@Override
+	public Set<String> getConsumerResponseMessages() {
+		return Collections.emptySet();
+	}
+	
+	@Override
+	public Set<String> getProviderRequestMessages() {
+		return xmlSchemasContents.getSchemaElementsByQName().keySet();
+	}
+	
+	@Override
+	public Set<String> getProviderResponseMessages() {
+		return Collections.emptySet();
+	}
+	
 	@Override
 	public Element getSchemaElementByQName(String qName) {
 		return xmlSchemasContents.getSchemaElementsByQName().get(qName);

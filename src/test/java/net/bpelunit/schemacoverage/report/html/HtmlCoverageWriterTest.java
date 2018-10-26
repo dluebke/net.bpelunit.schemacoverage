@@ -1,12 +1,13 @@
 package net.bpelunit.schemacoverage.report.html;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.junit.Test;
+import org.w3c.dom.Element;
 
 import net.bpelunit.schemacoverage.model.measurement.Context;
 import net.bpelunit.schemacoverage.model.measurement.ContextType;
@@ -18,9 +19,6 @@ import net.bpelunit.schemacoverage.simplepath.function.INodeFunction;
 import net.bpelunit.schemacoverage.simplepath.function.TextValueFunction;
 import net.bpelunit.schemacoverage.simplepath.selector.ElementSelector;
 import net.bpelunit.schemacoverage.simplepath.selector.RootSelector;
-
-import org.junit.Test;
-import org.w3c.dom.Element;
 
 public class HtmlCoverageWriterTest {
 
@@ -50,20 +48,8 @@ public class HtmlCoverageWriterTest {
 		}
 
 		@Override
-		public Set<String> getOutboundMessageElements() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
 		public String getName() {
 			return "ProjectName";
-		}
-
-		@Override
-		public Set<String> getInboundMessageElements() {
-			// TODO Auto-generated method stub
-			return null;
 		}
 
 		@Override
@@ -83,6 +69,30 @@ public class HtmlCoverageWriterTest {
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public Set<String> getProviderRequestMessages() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Set<String> getProviderResponseMessages() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Set<String> getConsumerRequestMessages() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Set<String> getConsumerResponseMessages() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 	@Test
@@ -92,7 +102,7 @@ public class HtmlCoverageWriterTest {
 		Map<String, Context<Element>> allContexts = new HashMap<>();
 		Context<Element> c;
 		INodeFunction path;
-		c = new Context<Element>(ContextType.INBOUND_MESSAGE, "Request", null);
+		c = new Context<Element>(ContextType.CONSUMER_REQUEST_MESSAGE, "Request", null);
 		allContexts.put(c.getName(), c);
 		RootSelector rootSelector;
 		rootSelector = new RootSelector();

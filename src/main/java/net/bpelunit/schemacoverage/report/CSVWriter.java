@@ -37,7 +37,7 @@ public class CSVWriter implements IReportWriter {
 							QNameUtil.resolveQName(ctx.getName()).getLocalPart(),
 							ctx.getName(),
 							m.getMeasurementPointType().toString(), 
-							m.getPath().toString(),
+							m.getMeasuredElement(),
 							m.getExpectedValue() != null ? m.getExpectedValue() : "",
 							String.join(",", m.getExtractedValues()), measurementFulfilled + "");
 					out.write(resultLine);

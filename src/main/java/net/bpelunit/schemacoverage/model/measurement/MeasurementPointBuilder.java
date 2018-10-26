@@ -35,7 +35,7 @@ import net.bpelunit.schemacoverage.util.StringUtil;
 import net.bpelunit.schemacoverage.xml.QNameUtil;
 import net.bpelunit.schemacoverage.xml.XMLUtil;
 
-public class MeasurementBuilder {
+public class MeasurementPointBuilder {
 
 	private int maxDepth = 7;
 	private static final boolean USE_BASE_ELEMENT_IN_SUBSTITUTION_HIERARCHY = true;
@@ -43,7 +43,7 @@ public class MeasurementBuilder {
 
 	private Set<String> rulesTruncatedAt = new HashSet<>();
 	
-	public MeasurementBuilder() {
+	public MeasurementPointBuilder() {
 		this(true);
 	}
 	
@@ -51,7 +51,7 @@ public class MeasurementBuilder {
 		return rulesTruncatedAt;
 	}
 	
-	public MeasurementBuilder(boolean resolveTypeHierarchyForSubstitutionGroups) {
+	public MeasurementPointBuilder(boolean resolveTypeHierarchyForSubstitutionGroups) {
 		this.resolveTypeHierarchyForSubstitutionGroups = resolveTypeHierarchyForSubstitutionGroups; 
 	}
 	
@@ -92,9 +92,10 @@ public class MeasurementBuilder {
 			RootSelector parentElementPath) {
 		
 		if("element".equals(element.getLocalName())) {
-			element = resolveElementRefIfNecessary(element, project);
+			// resolve min/max first because with element references etc. these are still valid from here!
 			int minOccurs = getMinOccurs(element);
 			int maxOccurs = getMaxOccurs(element);
+			element = resolveElementRefIfNecessary(element, project);
 			
 			QName elementQName = resolveQNameForElement(element);
 			
@@ -112,25 +113,28 @@ public class MeasurementBuilder {
 				
 				for(Element currentElement : elementsToProcess) {
 					try {
-						RootSelector thisElementPath = parentElementPath.clone();
-						thisElementPath.appendSelector(new ElementSelector(resolveQNameForElement(currentElement)), maxDepth);
-						INodeFunction countFunctionElementPath = new CountFunction(thisElementPath.clone());
+						
+						INodeFunction countFunctionElementPath = new CountFunction(new ElementSelector(resolveQNameForElement(currentElement)));
 						if(minOccurs == 0 && maxOccurs == 1) {
-							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeNotSet, countFunctionElementPath, "0"));
-							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeSet, countFunctionElementPath, "1"));
+							MeasurementPoint optionalNodeNotSetMeasurementPoint = new MeasurementPoint(MeasurementPointType.OptionalNodeNotSet, parentElementPath.clone(), countFunctionElementPath, "0");
+							context.addMeasurementPoint(optionalNodeNotSetMeasurementPoint);
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.OptionalNodeSet, parentElementPath.clone(), countFunctionElementPath, "1"));
 						} else if(minOccurs == maxOccurs) {
-							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.MandatoryNodeUsed, countFunctionElementPath, Integer.toString(minOccurs)));
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.MandatoryNodeUsed, parentElementPath.clone(), countFunctionElementPath, Integer.toString(minOccurs)));
 						} else {
-							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListLowerBound, countFunctionElementPath, Integer.toString(minOccurs)));
+							context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListLowerBound, parentElementPath.clone(), countFunctionElementPath, Integer.toString(minOccurs)));
 							if(maxOccurs > 0) {
-								context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListUpperBound, countFunctionElementPath, Integer.toString(maxOccurs)));
+								context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.ListUpperBound, parentElementPath.clone(), countFunctionElementPath, Integer.toString(maxOccurs)));
 							} else {
-								context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.DifferentlySizedLists, countFunctionElementPath, null));
+								context.addMeasurementPoint(new MeasurementPoint(MeasurementPointType.DifferentlySizedLists, parentElementPath.clone(), countFunctionElementPath, null));
 							}
 						}
 						if(currentElement == null) {
 							currentElement = element;
 						}
+						
+						RootSelector thisElementPath = parentElementPath.clone();
+						thisElementPath.appendSelector(new ElementSelector(resolveQNameForElement(currentElement)), maxDepth);
 						String typeAsCName = currentElement.getAttribute("type");
 						buildCoveragePointsForType(context, thisElementPath, typeAsCName, currentElement, project, resolveTypeHierarchyForSubstitutionGroups  || !hasSubstitutions);
 					} catch(PathTooLongException e) {
@@ -205,6 +209,9 @@ public class MeasurementBuilder {
 			// only follow complex types
 			if(followTypeHierarchy) {
 				Set<String> allSubTypes = project.getAllSubtypesForType(formattedQName);
+				if(formattedQName.equals("{http://schemas.terravis.ch/GBBasisTypen/2.0}PersonGBType")) {
+					System.out.println(allSubTypes);
+				}
 				if(allSubTypes != null && allSubTypes.size() > 0) {
 					INodeFunction typeFunctionElementPath = new TypeFunction(thisElementPath.clone(), formattedQName);
 					thisElementPath = thisElementPath.clone();

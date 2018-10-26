@@ -100,14 +100,14 @@ public abstract class AbstractNodeSelector implements INodeSelector {
 		sb.append("/");
 		toStringBuilderInternal(sb);
 		
-		if(getNext() != null) {
-			getNext().toStringBuilder(sb);
-		}
-		
 		if(filter != null) {
 			sb.append("[");
 			filter.toStringBuilder(sb);
 			sb.append("]");
+		}
+		
+		if(getNext() != null) {
+			getNext().toStringBuilder(sb);
 		}
 		
 		return sb;

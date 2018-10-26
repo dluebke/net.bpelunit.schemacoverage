@@ -26,7 +26,7 @@ import net.bpelunit.schemacoverage.messagesource.IMessageSource;
 import net.bpelunit.schemacoverage.messagesource.XmlFileMessageSource;
 import net.bpelunit.schemacoverage.model.measurement.Context;
 import net.bpelunit.schemacoverage.model.measurement.ContextType;
-import net.bpelunit.schemacoverage.model.measurement.MeasurementBuilder;
+import net.bpelunit.schemacoverage.model.measurement.MeasurementPointBuilder;
 import net.bpelunit.schemacoverage.model.measurement.MeasurementPoint;
 import net.bpelunit.schemacoverage.model.measurement.MeasurementPointType;
 import net.bpelunit.schemacoverage.model.project.BpelProject;
@@ -128,62 +128,73 @@ public class SchemaCoverageCalculatorMain {
 		}
 		
 		// resolve used messages
-		Set<String> inboundMessages = project.getInboundMessageElements();
-		Set<String> outboundMessages = project.getOutboundMessageElements();
+		Set<String> providerRequestMessages = project.getProviderRequestMessages();
+		Set<String> providerResponseMessages = project.getProviderResponseMessages();
+		Set<String> consumerRequestMessages = project.getConsumerRequestMessages();
+		Set<String> consumerResponseMessages = project.getConsumerResponseMessages();
 		System.out.println(
 				"Found " + 
-						inboundMessages.size() + 
-						" inbound message type(s) and " +
-						outboundMessages.size() + 
-						" outbound message type(s)"
+						providerRequestMessages.size() + 
+						" provider request message type(s), " +
+						providerResponseMessages.size() + 
+						" provider response message type(s), " +
+						consumerRequestMessages.size() + 
+						" consumer request message type(s), and " +
+						consumerResponseMessages.size() + 
+						" consumer response message type(s)"
 				);
 
 		// Ignore messages specified by user
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_INBOUND)) {
 			String[] ignore = cmd.getOptionValue(COMMANDLINEOPTION_IGNORE_INBOUND).split(",");
-			inboundMessages.removeAll(Arrays.asList(ignore));
+			providerRequestMessages.removeAll(Arrays.asList(ignore));
+			consumerResponseMessages.removeAll(Arrays.asList(ignore));
 		}
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_OUTBOUND)) {
 			String[] ignore = cmd.getOptionValue(COMMANDLINEOPTION_IGNORE_OUTBOUND).split(",");
-			outboundMessages.removeAll(Arrays.asList(ignore));
+			providerResponseMessages.removeAll(Arrays.asList(ignore));
+			consumerRequestMessages.removeAll(Arrays.asList(ignore));
 		}
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_ALLINBOUND)) {
-			inboundMessages.clear();
+			providerRequestMessages.clear();
+			consumerResponseMessages.clear();
 		}
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_ALLOUTBOUND)) {
-			outboundMessages.clear();
+			providerResponseMessages.clear();
+			consumerRequestMessages.clear();
 		}
 		if(cmd.hasOption(COMMANDLINEOPTION_IGNORE_MESSAGES)) {
 			String[] ignore = cmd.getOptionValues(COMMANDLINEOPTION_IGNORE_MESSAGES);
-			inboundMessages.removeAll(Arrays.asList(ignore));
-			outboundMessages.removeAll(Arrays.asList(ignore));
+			providerRequestMessages.removeAll(Arrays.asList(ignore));
+			providerResponseMessages.removeAll(Arrays.asList(ignore));
+			consumerRequestMessages.removeAll(Arrays.asList(ignore));
+			consumerResponseMessages.removeAll(Arrays.asList(ignore));
 		}
 		System.out.println(
 				"Using " + 
-						inboundMessages.size() + 
-						" inbound message type(s) and " +
-						outboundMessages.size() + 
-						" outbound message type(s)"
+						providerRequestMessages.size() + 
+						" provder request message type(s), " +
+						providerResponseMessages.size() + 
+						" provider response message type(s), " + 
+						consumerRequestMessages.size() + 
+						" consumer request request message type(s), and " +
+						consumerResponseMessages.size() + 
+						" consumer response message type(s)" 
 				);
 
 		
 		
 		Map<String, Context<Element>> inboundContexts = new HashMap<>();
-		List<MeasurementPoint> measurementPoints = new ArrayList<>();
-		MeasurementBuilder mb = new MeasurementBuilder();
-		for(String m : inboundMessages) {
-			Context<Element> ctx = new Context<Element>(ContextType.INBOUND_MESSAGE, m, project.getSchemaElementByQName(m));
-			inboundContexts.put(m, ctx);
-			mb.buildMeasurements(ctx, project);
-			measurementPoints.addAll(ctx.getMeasurementPoints());
-		}
 		Map<String, Context<Element>> outboundContexts = new HashMap<>();
-		for(String m : outboundMessages) {
-			Context<Element> ctx = new Context<Element>(ContextType.OUTBOUND_MESSAGE, m, project.getSchemaElementByQName(m));
-			outboundContexts.put(m, ctx);
-			mb.buildMeasurements(ctx, project);
-			measurementPoints.addAll(ctx.getMeasurementPoints());
-		}
+		List<MeasurementPoint> measurementPoints = new ArrayList<>();
+		MeasurementPointBuilder mb = new MeasurementPointBuilder();
+		
+		buildMeasurementPointsForContext(project, measurementPoints, ContextType.PROVIDER_REQUEST_MESSAGE,
+				providerRequestMessages, inboundContexts, mb);
+		buildMeasurementPointsForContext(project, measurementPoints, ContextType.CONSUMER_RESPONSE_MESSAGE, consumerResponseMessages, inboundContexts, mb);
+		
+		buildMeasurementPointsForContext(project, measurementPoints, ContextType.PROVIDER_RESPONSE_MESSAGE, providerResponseMessages, outboundContexts, mb);
+		buildMeasurementPointsForContext(project, measurementPoints, ContextType.CONSUMER_REQUEST_MESSAGE, consumerRequestMessages, outboundContexts, mb);
 		
 		// TODO read customizing for coverage criteria
 		
@@ -235,6 +246,17 @@ public class SchemaCoverageCalculatorMain {
 		System.out.println("Coverage: " + fulfilled + "/" + measurementPoints.size() + " = " + (fulfilled * 100 / measurementPoints.size()) + "%");
 	}
 
+	private void buildMeasurementPointsForContext(IProject project,
+			List<MeasurementPoint> measurementPoints, ContextType messageContextType, Set<String> messages,
+			Map<String, Context<Element>> contexts, MeasurementPointBuilder mb) {
+		for(String m : messages) {
+			Context<Element> ctx = new Context<Element>(messageContextType, m, project.getSchemaElementByQName(m));
+			contexts.put(m, ctx);
+			mb.buildMeasurements(ctx, project);
+			measurementPoints.addAll(ctx.getMeasurementPoints());
+		}
+	}
+
 	
 
 	private void printHelpAndExit(Options options) {
@@ -264,12 +286,7 @@ public class SchemaCoverageCalculatorMain {
 		Context<Element> ctx = contextsByMessage.get(messageElementQName);
 		if(ctx != null) {
 			for(MeasurementPoint m : ctx.getMeasurementPoints()) {
-				List<String> values = m.getPath().evaluate(payloadElement);
-				if(values.size() > 0) {
-					for(String value : values) {
-						m.addExtractedValue(value);
-					}
-				}
+				m.evaluate(payloadElement);
 			}
 		}
 	}

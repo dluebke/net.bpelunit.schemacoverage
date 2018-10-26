@@ -48,29 +48,43 @@ body {
 	padding-left: 90px;
 }
 
-.rotate {
-
-/* Safari */
--webkit-transform: rotate(-90deg);
-
-/* Firefox */
--moz-transform: rotate(-90deg);
-
-/* IE */
--ms-transform: rotate(-90deg);
-
-/* Opera */
--o-transform: rotate(-90deg);
-
-/* Internet Explorer */
-filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
-
-}
-
 .covered {
 	color: #00aa00;
 }
 
 .notcovered {
 	color: #aa0000;
+}
+
+
+thead {
+    background-color: #000000;
+    color: #ffffff;
+    
+  }
+tbody tr:nth-child(even) {
+     background-color: #dedede;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
 }
