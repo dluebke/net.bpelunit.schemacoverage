@@ -2,7 +2,10 @@ package net.bpelunit.schemacoverage.report;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 
@@ -30,6 +33,11 @@ public class CSVWriter implements IReportWriter {
 			for (Context<Element> ctx : allContexts.values()) {
 				for (MeasurementPoint m : ctx.getMeasurementPoints()) {
 					boolean measurementFulfilled = m.isFulfilled();
+					Set<String> extractedValues = m.getExtractedValues();
+					List<String> sanitizedExtractedValues = new ArrayList<>(extractedValues.size());
+					for(String s : extractedValues) {
+						sanitizedExtractedValues.add(s.replaceAll("\t", " "));
+					}
 					String resultLine = String.join("\t",
 							project.getName(),
 							ctx.getType().toString(), 
@@ -39,7 +47,9 @@ public class CSVWriter implements IReportWriter {
 							m.getMeasurementPointType().toString(), 
 							m.getMeasuredElement(),
 							m.getExpectedValue() != null ? m.getExpectedValue() : "",
-							String.join(",", m.getExtractedValues()), measurementFulfilled + "");
+							String.join(",", extractedValues),
+							measurementFulfilled + ""
+							);
 					out.write(resultLine);
 					out.write("\n");
 				}
