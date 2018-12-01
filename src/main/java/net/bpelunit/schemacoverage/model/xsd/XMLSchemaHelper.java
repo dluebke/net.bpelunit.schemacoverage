@@ -31,6 +31,8 @@ public class XMLSchemaHelper {
 				if(n.getNodeType() == Node.ELEMENT_NODE) {
 					if("attribute".equals(n.getLocalName())) {
 						result.add((Element)n);
+					} if("element".equals(n.getLocalName())) {
+						// skip here; attributes do not belong to this element but to an element of an inner type
 					} else {
 						result.addAll(collectAttributes((Element)n));
 					}

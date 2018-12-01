@@ -100,6 +100,7 @@ public class MeasurementPointBuilder {
 			QName elementQName = resolveQNameForElement(element);
 			
 			if(parentElementPath.length() <= maxDepth) {
+				// TODO Get Substituions only for top-level elements
 				Set<String> substitutions = project.getAllSubstitutionsForElement(QNameUtil.format(elementQName));
 				boolean hasSubstitutions = substitutions.size() > 0;
 

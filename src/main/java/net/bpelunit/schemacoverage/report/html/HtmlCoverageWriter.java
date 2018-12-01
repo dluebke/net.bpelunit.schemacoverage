@@ -3,9 +3,11 @@ package net.bpelunit.schemacoverage.report.html;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,22 +39,105 @@ public class HtmlCoverageWriter implements IReportWriter {
 
 	@Override
 	public void writeReport(IProject project, Map<String, Context<Element>> allContexts) throws IOException {
+		createOutputDir();
+		
+		extractCSSFiles();
+		
+		List<ContextStats> contextStats = new ArrayList<>();
 		for(Context<Element> context : allContexts.values()) {
-			writeHtmlCoverage(context, project);
+			contextStats.add(writeHtmlCoverage(context, project));
+		}
+		
+		writeIndex(contextStats, project);
+	}
+
+	private void writeIndex(List<ContextStats> contextStats, IProject project) throws IOException {
+		File output = new File(outputDir, "index.html");
+		
+		try(Writer out = new FileWriter(output)) {
+			out.write("<!DOCTYPE html>\n");
+			out.write("<html>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"coverage.css\">\n<body>\n");
+			writeTag(out, "h1", project.getName());
+			writeTag(out, "h2", "Summary Overview");
+			
+			out.write("<table border=\"1\" cellpadding=\"0\" cellspacing=\"0\">");
+			out.write("<thead>");
+			out.write("<tr>");
+			writeTag(out, "th", "Context");
+			writeTag(out, "th", "Coverage");
+			for(MeasurementPointType mpt : MeasurementPointType.values()) {
+				out.write("<th class=\"norotate\">" + mpt + "</th>");
+			}
+			out.write("</tr>");
+			out.write("</thead>");
+			
+			out.write("<tbody style=\"overflow: auto;\">");
+			for(ContextStats ctx : contextStats) {
+				out.write("<tr>");
+				int countRulesFulfilled = ctx.getFulfilledmeasurementPointTypes().sum();
+				boolean allRulesFulfilled = ctx.getAllMeasurementPointTypes().sum() == countRulesFulfilled;
+				out.write("<td><a href=\"" + URLEncoder.encode(ctx.getOutputFile().getName(), "UTF-8") + "\"");
+				writeTag(out, "span class=\"measuredobject\"", colorPath(ctx.getContext().getName(), allRulesFulfilled));
+				out.write("</a>");
+				out.write("</td>");
+				String style = allRulesFulfilled ? "covered" : "notcovered";
+				writeTag(out, "td class=\"" + style + "\"", countRulesFulfilled + "/" + ctx.getAllMeasurementPointTypes().sum());
+				for(MeasurementPointType mpt : MeasurementPointType.values()) {
+					out.write("<td>");
+//					if(mpt != MeasurementPointType.EnumLiteralUsed && mpt != MeasurementPointType.DeclaredTypeInHierarchy && mpt != MeasurementPointType.TypeInHierarchy) {
+//						MeasurementPoint mp = ctx.getAllMeasurementPointTypes().get(mpt).;
+//						if(mp != null) {
+//							allMeasurementPointTypes.inc(mpt);
+//							if(mp.isFulfilled()) {
+//								fulfilledmeasurementPointTypes.inc(mpt);
+//								writeTag(out, "span class=\"covered\"", "ok");
+//							} else {
+//								String extractedValues = stringJoin(",", mp.getExtractedValues());
+//								if(extractedValues.equals("")) {
+//									extractedValues = "no values found";
+//								}
+//								writeTag(out, "span class=\"notcovered\"", "nok (" + extractedValues + ")");
+//							}
+//						}
+//					} else {
+//						List<MeasurementPoint> mps = getMeasurementPointsForType(measurementPoints, mpt);
+//						for(MeasurementPoint mp : mps) {
+//							allMeasurementPointTypes.inc(mpt);
+//							if(mp.isFulfilled()) {
+//								style = "covered";
+//								fulfilledmeasurementPointTypes.inc(mpt);
+//							} else {
+//								style = "notcovered";
+//							}
+//							writeTag(out, "span class=\"" + style + "\"", mp.getExpectedValue() + " ");
+//						}
+//					}
+					out.write("</td>");
+				}
+				out.write("</tr>");
+			}
+			out.write("</tbody>");
+			
+			out.write("<tr>");
+			writeTag(out, "th", "Summary/Total");
+			writeTag(out, "th", ""); //fulfilledmeasurementPointTypes.sum() +  "/" + allMeasurementPointTypes.sum());
+			for(MeasurementPointType mpt : MeasurementPointType.values()) {
+//				int all = allMeasurementPointTypes.get(mpt);
+//				int fulfilled = fulfilledmeasurementPointTypes.get(mpt);
+//				String style = all == fulfilled ? "covered" : "notcovered";
+				String style = "notcovered";
+				int all = 0;
+				int fulfilled = 0;
+				writeTag(out, "th class=\"" + style + "\"", fulfilled + "/" + all);
+			}
+			out.write("</tr>");
+			out.write("</table>");
+			
+			out.write("</body></html>");
 		}
 	}
 
-	private void writeHtmlCoverage(Context<Element> context, IProject project) throws IOException {
-		CounterMap<MeasurementPointType> fulfilledmeasurementPointTypes = new CounterMap<>();
-		CounterMap<MeasurementPointType> allMeasurementPointTypes = new CounterMap<>();
-		ListMap<String, MeasurementPoint> results = analyzeContext(context);
-		List<String> sortedElements = new ArrayList<>(results.keySet());
-		Collections.sort(sortedElements);
-		
-		if(!outputDir.exists()) {
-			outputDir.mkdirs();
-		}
-		
+	private void extractCSSFiles() throws IOException, FileNotFoundException {
 		try(
 				FileOutputStream out = new FileOutputStream(new File(outputDir, "coverage.css"));
 				InputStream in = getClass().getResourceAsStream("coverage.css");
@@ -61,8 +146,24 @@ public class HtmlCoverageWriter implements IReportWriter {
 				out.write(in.read());
 			}
 		}
+	}
+
+	private void createOutputDir() {
+		if(!outputDir.exists()) {
+			outputDir.mkdirs();
+		}
+	}
+
+	private ContextStats writeHtmlCoverage(Context<Element> context, IProject project) throws IOException {
+		CounterMap<MeasurementPointType> fulfilledmeasurementPointTypes = new CounterMap<>();
+		CounterMap<MeasurementPointType> allMeasurementPointTypes = new CounterMap<>();
+		ListMap<String, MeasurementPoint> results = analyzeContext(context);
+		List<String> sortedElements = new ArrayList<>(results.keySet());
+		Collections.sort(sortedElements);
+		
 		
 		File output = new File(outputDir, project.getName() + "." + context.getType() + "." + getFilenameToken(context.getName()) + ".html");
+		ContextStats result = new ContextStats(context, fulfilledmeasurementPointTypes, allMeasurementPointTypes, output);
 		try(Writer out = new FileWriter(output)) {
 			out.write("<!DOCTYPE html>\n");
 			out.write("<html>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"coverage.css\">\n<body>\n");
@@ -142,6 +243,8 @@ public class HtmlCoverageWriter implements IReportWriter {
 			
 			out.write("</body></html>");
 		}
+		
+		return result;
 	}
 
 	private MeasurementPoint getFirstMeasurementPointForType(
