@@ -21,6 +21,11 @@ public class CSVWriter implements IReportWriter {
 	public CSVWriter(String csvFileName) {
 		this.csvFileName = csvFileName;
 	}
+	
+	@Override
+	public String getName() {
+		return "CSV";
+	}
 
 	@Override
 	public void writeReport(IProject project, Map<String, Context<Element>> allContexts) throws IOException {

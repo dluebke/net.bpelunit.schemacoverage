@@ -38,6 +38,11 @@ public class HtmlCoverageWriter implements IReportWriter {
 	}
 
 	@Override
+	public String getName() {
+		return "HTML";
+	}
+	
+	@Override
 	public void writeReport(IProject project, Map<String, Context<Element>> allContexts) throws IOException {
 		createOutputDir();
 		

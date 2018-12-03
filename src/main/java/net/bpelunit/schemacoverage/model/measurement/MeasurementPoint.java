@@ -85,7 +85,10 @@ public class MeasurementPoint {
 			for(Node m : selectedContexts) {
 				NodeList children = m.getChildNodes();
 				for(int i = 0; i < children.getLength(); i++) {
-					contextNodes.add(children.item(i));					
+					Node c = children.item(i);
+					if(c.getNodeType() == Node.ELEMENT_NODE) { 
+						contextNodes.add(c);
+					}
 				}
 			}
 		} else {

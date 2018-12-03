@@ -12,4 +12,6 @@ public interface IReportWriter {
 
 	void writeReport(IProject project, Map<String, Context<Element>> allContexts) throws IOException;
 
+	String getName();
+
 }

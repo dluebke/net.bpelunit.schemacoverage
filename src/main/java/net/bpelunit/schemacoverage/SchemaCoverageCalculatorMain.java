@@ -116,12 +116,12 @@ public class SchemaCoverageCalculatorMain {
 			printHelpAndExit(options);
 		}
 		
-		String csvFileName = DEFAULT_OUTPUT_FILENAME;
-		if(cmd.hasOption(COMMANDLINEOPTION_OUTPUT_CSV)) {
-			csvFileName = cmd.getOptionValue(COMMANDLINEOPTION_OUTPUT_CSV);
-		}
 		List<IReportWriter> reportWriters = new ArrayList<>();
-		reportWriters.add(new CSVWriter(csvFileName));
+		if(cmd.hasOption(COMMANDLINEOPTION_OUTPUT_CSV)) {
+			String csvFileName = DEFAULT_OUTPUT_FILENAME;
+			csvFileName = cmd.getOptionValue(COMMANDLINEOPTION_OUTPUT_CSV);
+			reportWriters.add(new CSVWriter(csvFileName));
+		}
 		
 		if(cmd.hasOption(COMMANDLINEOPTION_OUTPUT_HTML)) {
 			reportWriters.add(new HtmlCoverageWriter(new File(cmd.getOptionValue(COMMANDLINEOPTION_OUTPUT_HTML))));
@@ -209,7 +209,6 @@ public class SchemaCoverageCalculatorMain {
 			System.out.println(" | " + entry.getKey() + " := " + entry.getValue());
 		}
 		
-		// read BPELUnit log
 		System.out.println(
 			"Found " + 
 			messageSource.getInboundMessageInstances().size() + 
@@ -217,7 +216,8 @@ public class SchemaCoverageCalculatorMain {
 			messageSource.getOutboundMessageInstances().size() + 
 			" outbound message instance(s)"
 		);
-		
+
+		System.out.println("Evaluating Measurement Points...");
 		// calculate coverage
 		for(Element e : messageSource.getInboundMessageInstances()) {
 			processMeasurementPoints(inboundContexts, e);
@@ -226,16 +226,11 @@ public class SchemaCoverageCalculatorMain {
 			processMeasurementPoints(outboundContexts, e);
 		}
 		
-		// write report
+		System.out.println("Calculating Coverage");
+		int fulfilled = 0;
 		Map<String, Context<Element>> allContexts = new HashMap<>();
 		allContexts.putAll(inboundContexts);
 		allContexts.putAll(outboundContexts);
-		
-		for(IReportWriter reportWriter : reportWriters) {
-			reportWriter.writeReport(project, allContexts);
-		}
-		
-		int fulfilled = 0;
 		for(Context<Element> ctx : allContexts.values()) {
 			for(MeasurementPoint m : ctx.getMeasurementPoints()) {
 				if(m.isFulfilled()) {
@@ -244,6 +239,13 @@ public class SchemaCoverageCalculatorMain {
 			}
 		}
 		System.out.println("Coverage: " + fulfilled + "/" + measurementPoints.size() + " = " + (fulfilled * 100 / measurementPoints.size()) + "%");
+		
+		System.out.println("Writing reports...");
+		for(IReportWriter reportWriter : reportWriters) {
+			System.out.println("-" + reportWriter.getName() + "...");
+			reportWriter.writeReport(project, allContexts);
+		}
+		
 	}
 
 	private void buildMeasurementPointsForContext(IProject project,
